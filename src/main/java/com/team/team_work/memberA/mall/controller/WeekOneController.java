@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Map;
 
-/** First-week entry points. Authentication and operations are second-week tasks. */
+/** Retained environment and temporary admin entry points; user and mall routes live in MallController. */
 @Controller
 public class WeekOneController {
     private final EnvironmentService service;
@@ -18,19 +18,11 @@ public class WeekOneController {
         this.service = service;
         this.mapper = mapper;
     }
-    @GetMapping({"/", "/index"})
-    public String home(Model model) {
-        model.addAttribute("environment", service.inspect());
-        model.addAttribute("products", mapper.findPreviewProducts());
-        return "memberA/mall/index";
-    }
     @GetMapping({"/admin", "/admin/", "/admin/login"})
     public String admin(Model model) {
         model.addAttribute("environment", service.inspect());
         return "memberA/mall/admin-start";
     }
-    @GetMapping({"/login", "/register"})
-    public String accountStart() { return "memberA/mall/account-start"; }
     @GetMapping("/api/environment")
     @ResponseBody
     public ApiResponse<Map<String, Object>> environment() {

@@ -44,13 +44,15 @@ class TeamWorkApplicationTests {
         assertThat(result.body()).doesNotContain("password", "jdbc:", "DB_PASSWORD");
         assertThat(get("/test-db").body()).contains("\"data\":1");
     }
-    @Test void accountEntryDoesNotPretendAuthenticationIsImplemented() throws Exception {
+    @Test void accountEntryRendersImplementedForms() throws Exception {
         for (String path : new String[]{"/login", "/register"}) {
-            assertThat(get(path).body()).contains("尚未开放注册和登录");
+            assertThat(get(path).body()).contains("auth-form", "captcha-image", "01电商系统");
         }
         assertThat(get("/css/01-mall.css").statusCode()).isEqualTo(200);
     }
     @Test void initializationCanRunTwiceWithoutOverwritingRows() {
+        int beforeProducts=mapper.countProducts();
+        int beforeCategories=mapper.countCategories();
         jdbc.update("UPDATE product SET summary = ? WHERE product_id = 1", "保留既有修改");
         try {
             ResourceDatabasePopulator populator = new ResourceDatabasePopulator(
@@ -58,8 +60,8 @@ class TeamWorkApplicationTests {
             populator.setSqlScriptEncoding("UTF-8");
             populator.execute(dataSource);
             populator.execute(dataSource);
-            assertThat(mapper.countProducts()).isEqualTo(3);
-            assertThat(mapper.countCategories()).isEqualTo(3);
+            assertThat(mapper.countProducts()).isEqualTo(beforeProducts);
+            assertThat(mapper.countCategories()).isEqualTo(beforeCategories);
             assertThat(jdbc.queryForObject("SELECT summary FROM product WHERE product_id=1", String.class)).isEqualTo("保留既有修改");
         } finally {
             jdbc.update("UPDATE product SET summary = ? WHERE product_id = 1", "轻巧便携，用于商品字段与价格展示验证");
@@ -68,7 +70,7 @@ class TeamWorkApplicationTests {
     @Test void unpublishedProductsAreNotReturnedToTheMall() {
         jdbc.update("UPDATE product SET sell_status=0 WHERE product_id=3");
         try {
-            assertThat(mapper.findPreviewProducts()).extracting("productId").containsExactly(1L, 2L);
+            assertThat(mapper.findPreviewProducts()).extracting("productId").contains(1L, 2L).doesNotContain(3L);
         } finally { jdbc.update("UPDATE product SET sell_status=1 WHERE product_id=3"); }
     }
     @Test void schemaRejectsInvalidInventoryAndOrphanProducts() {

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01电商系统 · 收货地址</title>
+<link rel="stylesheet" th:href="@{/css/01-shop.css}">
+<script defer th:src="@{/js/01-shop.js}">
+</script>
+</head>
+<body data-page="addresses">
+<header class="site-header">
+<a class="brand" th:href="@{/}">
+<span class="brand-icon">01</span>
+<span>01电商系统<small>好物 · 日常 · 新体验</small>
+</span>
+</a>
+<nav aria-label="主导航">
+<a th:href="@{/}">首页</a>
+<a th:href="@{/search}">全部商品</a>
+<a th:if="${currentUser != null}" th:href="@{/personal}">个人中心</a>
+<a th:if="${currentUser != null}" th:href="@{/personal/addresses}">收货地址</a>
+<a th:if="${currentUser == null}" th:href="@{/login}">登录</a>
+<a th:if="${currentUser == null}" class="nav-register" th:href="@{/register}">注册</a>
+<button th:if="${currentUser != null}" type="button" class="link-button" data-logout>退出登录</button>
+</nav>
+</header>
+<main>
+<div class="breadcrumb">
+<a th:href="@{/personal}">个人中心</a>
+<span>/</span>收货地址</div>
+<div class="account-layout">
+<aside class="account-nav">
+<p class="eyebrow">MY ACCOUNT</p>
+<h2>个人中心</h2>
+<a th:href="@{/personal}">个人资料</a>
+<a class="selected" th:href="@{/personal/addresses}">收货地址</a>
+<button type="button" class="link-button" data-logout>退出登录</button>
+</aside>
+<section class="account-content">
+<p class="eyebrow">DELIVERY ADDRESS</p>
+<h1>每一份期待，都有目的地。</h1>
+<p class="muted">最多保存 20 条地址。第一条自动设为默认，删除默认地址后会自动选择另一条。</p>
+<div id="address-list" class="address-list" aria-live="polite">
+</div>
+<section class="address-editor">
+<h2 id="editor-title">新增地址</h2>
+<form id="address-form" class="edit-form">
+<input type="hidden" name="addressId">
+<div class="form-row">
+<label>收货人<input name="receiverName" required maxlength="40" autocomplete="name">
+</label>
+<label>收货手机号<input name="receiverPhone" type="tel" required maxlength="11" pattern="1[3-9][0-9]{9}" autocomplete="tel">
+</label>
+</div>
+<div class="form-row">
+<label>省份<input name="province" required maxlength="40" autocomplete="address-level1" placeholder="例如：上海市">
+</label>
+<label>城市<input name="city" required maxlength="40" autocomplete="address-level2" placeholder="例如：上海市">
+</label>
+<label>区县<input name="district" required maxlength="40" autocomplete="address-level3" placeholder="例如：松江区">
+</label>
+</div>
+<label>详细地址<textarea name="detailAddress" required maxlength="200" autocomplete="street-address" rows="2" placeholder="街道、门牌、楼层等">
+</textarea>
+</label>
+<label class="checkbox-label">
+<input name="isDefault" type="checkbox">设为默认地址</label>
+<p class="form-message" id="form-message" role="alert">
+</p>
+<div class="actions">
+<button class="primary" type="submit">保存地址</button>
+<button class="secondary" type="button" id="cancel-edit">清空 / 取消编辑</button>
+</div>
+</form>
+</section>
+</section>
+</div>
+</main>
+<footer>
+<b>01电商系统</b>
+<span>课程独立实践项目 · 支付仅为项目内演示</span>
+<a th:href="@{/api/environment}">环境检查</a>
+</footer>
+<div id="global-message" role="status" aria-live="polite">
+</div>
+</body>
+</html>

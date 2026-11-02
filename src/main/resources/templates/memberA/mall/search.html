@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01电商系统 · 商品搜索</title>
+<link rel="stylesheet" th:href="@{/css/01-shop.css}">
+<script defer th:src="@{/js/01-shop.js}">
+</script>
+</head>
+<body data-page="search">
+<header class="site-header">
+<a class="brand" th:href="@{/}">
+<span class="brand-icon">01</span>
+<span>01电商系统<small>好物 · 日常 · 新体验</small>
+</span>
+</a>
+<nav aria-label="主导航">
+<a th:href="@{/}">首页</a>
+<a th:href="@{/search}">全部商品</a>
+<a th:if="${currentUser != null}" th:href="@{/personal}">个人中心</a>
+<a th:if="${currentUser != null}" th:href="@{/personal/addresses}">收货地址</a>
+<a th:if="${currentUser == null}" th:href="@{/login}">登录</a>
+<a th:if="${currentUser == null}" class="nav-register" th:href="@{/register}">注册</a>
+<button th:if="${currentUser != null}" type="button" class="link-button" data-logout>退出登录</button>
+</nav>
+</header>
+<main>
+<div class="breadcrumb">
+<a th:href="@{/}">首页</a>
+<span>/</span>商品搜索</div>
+<div class="section-heading">
+<div>
+<p class="eyebrow">FIND YOUR FAVORITES</p>
+<h1>发现心仪好物</h1>
+</div>
+<p th:text="'共 ' + ${result.total} + ' 件商品'">
+</p>
+</div>
+<form class="filter-panel" method="get" th:action="@{/search}">
+<label>关键词<input name="keyword" maxlength="50" th:value="${query.keyword}" placeholder="商品名称或简介">
+</label>
+<label>商品分类<select name="categoryId">
+<option value="">全部分类</option>
+<optgroup th:each="root : ${categories}" th:label="${root.categoryName}">
+<option th:value="${root.categoryId}" th:text="${root.categoryName} + '（全部）'" th:selected="${query.categoryId != null and query.categoryId.toString() == root.categoryId}">
+</option>
+<th:block th:each="second : ${root.children}">
+<option th:value="${second.categoryId}" th:text="'　' + ${second.categoryName}" th:selected="${query.categoryId != null and query.categoryId.toString() == second.categoryId}">
+</option>
+<option th:each="leaf : ${second.children}" th:value="${leaf.categoryId}" th:text="'　　' + ${leaf.categoryName}" th:selected="${query.categoryId != null and query.categoryId.toString() == leaf.categoryId}">
+</option>
+</th:block>
+</optgroup>
+</select>
+</label>
+<label>排序<select name="sort">
+<option value="latest" th:selected="${query.sort == 'latest'}">最新上架</option>
+<option value="priceAsc" th:selected="${query.sort == 'priceAsc'}">价格从低到高</option>
+<option value="priceDesc" th:selected="${query.sort == 'priceDesc'}">价格从高到低</option>
+</select>
+</label>
+<label>每页<select name="pageSize">
+<option th:each="size : ${ {6,12,24} }" th:value="${size}" th:text="${size} + ' 件'" th:selected="${query.pageSize == size}">
+</option>
+</select>
+</label>
+<button class="primary" type="submit">筛选商品</button>
+<a th:href="@{/search}">重置</a>
+</form>
+<div class="product-grid" th:with="items=${result.list}">
+<a class="product-card" th:each="p : ${items}" th:href="@{/products/{id}(id=${p.productId})}">
+<div class="product-picture">
+<img loading="lazy" th:src="@{${p.coverUrl}}" th:alt="${p.productName}">
+</div>
+<div class="product-copy">
+<p class="product-tag">01 精选</p>
+<h3 th:text="${p.productName}">
+</h3>
+<p class="summary" th:text="${p.summary}">
+</p>
+<div class="product-bottom">
+<strong th:text="'¥ ' + ${p.sellingPrice}">
+</strong>
+<span th:text="${p.stock > 0 ? '有货' : '暂时缺货'}">
+</span>
+</div>
+</div>
+</a>
+</div>
+<section class="empty-state" th:if="${#lists.isEmpty(result.list)}">
+<h2>暂时没有找到商品</h2>
+<p>试试其他关键词或分类。商品下架后不会在这里展示。</p>
+<a class="button primary" th:href="@{/search}">查看全部商品</a>
+</section>
+<nav class="pagination" aria-label="商品分页">
+<a th:if="${result.page > 1}" th:href="@{/search(keyword=${query.keyword},categoryId=${query.categoryId},sort=${query.sort},page=${result.page - 1},pageSize=${query.pageSize})}">← 上一页</a>
+<span th:text="'第 ' + ${result.page} + ' 页 / 共 ' + ${result.totalPages} + ' 页'">
+</span>
+<a th:if="${result.page < result.totalPages}" th:href="@{/search(keyword=${query.keyword},categoryId=${query.categoryId},sort=${query.sort},page=${result.page + 1},pageSize=${query.pageSize})}">下一页 →</a>
+</nav>
+</main>
+<footer>
+<b>01电商系统</b>
+<span>课程独立实践项目 · 支付仅为项目内演示</span>
+<a th:href="@{/api/environment}">环境检查</a>
+</footer>
+<div id="global-message" role="status" aria-live="polite">
+</div>
+</body>
+</html>

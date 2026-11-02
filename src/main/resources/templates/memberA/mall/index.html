@@ -1,9 +1,176 @@
 <!doctype html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>01电商系统 · 商城首页</title><link rel="stylesheet" th:href="@{/css/01-mall.css}"></head>
-<body><header><a class="brand" th:href="@{/}">01电商系统<span>课程项目 · 成员 A</span></a><nav><a th:href="@{/login}">用户入口</a><a th:href="@{/admin}">后台入口</a><a th:href="@{/api/environment}">环境检查</a></nav></header>
-<main><section class="hero"><p class="eyebrow">第一周交付 / WEEK 01</p><h1>01电商系统</h1><p>先把环境跑通，再让协作有据可依。</p><p class="muted">这是数据库驱动的商城启动页。注册登录、搜索与交易功能按后续周计划开发。</p><a class="button" th:href="@{/api/environment}">查看环境与数据版本 →</a></section>
-<section class="status"><div><small>Spring Boot</small><strong th:text="${environment.springBootVersion}"></strong></div><div><small>Java</small><strong th:text="${environment.javaVersion}"></strong></div><div><small>数据库</small><strong th:text="${environment.databaseMode}"></strong></div><div><small>数据结构</small><strong th:text="${environment.schemaVersion}"></strong></div></section>
-<aside th:if="${environment.databaseMode == 'H2 临时演示'}" class="notice">当前为 H2 临时演示环境，关闭后数据清空；MySQL 验收须按运行说明单独执行。</aside>
-<section><div class="section-heading"><h2>初始化商品预览</h2><span>用于核对数据库与页面读取链路</span></div><div class="products"><article th:each="product : ${products}"><div class="product-art" aria-hidden="true"><span th:text="${#strings.substring(product.productName,0,1)}">01</span></div><p class="tag">01电商系统 · 演示数据</p><h3 th:text="${product.productName}"></h3><p th:text="${product.summary}"></p><div class="price"><strong th:text="'¥ ' + ${#numbers.formatDecimal(product.sellingPrice,1,2)}"></strong><small th:text="'库存 ' + ${product.stock}"></small></div></article></div><p th:if="${#lists.isEmpty(products)}" class="notice">暂无上架商品，请检查初始化数据。</p></section>
-<section class="work"><h2>协作边界</h2><div class="roles"><p><b>成员 A</b> 用户与商城展示、环境初始化</p><p><b>成员 B</b> 商品、分类与后台运营</p><p><b>成员 C</b> 购物车、订单与交易流程</p></div></section></main><footer>01电商系统 · 第一周环境基线 · 支付仅规划为项目内演示</footer></body></html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01电商系统 · 商城首页</title>
+<link rel="stylesheet" th:href="@{/css/01-shop.css}">
+<script defer th:src="@{/js/01-shop.js}">
+</script>
+</head>
+<body data-page="index">
+<header class="site-header">
+<a class="brand" th:href="@{/}">
+<span class="brand-icon">01</span>
+<span>01电商系统<small>好物 · 日常 · 新体验</small>
+</span>
+</a>
+<nav aria-label="主导航">
+<a th:href="@{/}">首页</a>
+<a th:href="@{/search}">全部商品</a>
+<a th:if="${currentUser != null}" th:href="@{/personal}">个人中心</a>
+<a th:if="${currentUser != null}" th:href="@{/personal/addresses}">收货地址</a>
+<a th:if="${currentUser == null}" th:href="@{/login}">登录</a>
+<a th:if="${currentUser == null}" class="nav-register" th:href="@{/register}">注册</a>
+<button th:if="${currentUser != null}" type="button" class="link-button" data-logout>退出登录</button>
+</nav>
+</header>
+<main>
+<section class="search-strip">
+<p>让日常，多一点新意。</p>
+<form th:action="@{/search}" method="get" class="search-form">
+<label class="sr-only" for="home-keyword">搜索商品</label>
+<input id="home-keyword" name="keyword" maxlength="50" placeholder="搜索你想要的商品">
+<button class="primary" type="submit">搜索</button>
+</form>
+</section>
+<section class="hero">
+<div class="hero-copy">
+<p class="eyebrow">01 SELECT / 精选生活</p>
+<h1>每一天，<br>都有好物相伴。</h1>
+<p>从学习桌面，到日常生活。<br>找到适合自己的那一件。</p>
+<a class="primary button" th:href="@{/search}">开始逛逛 <span>↗</span>
+</a>
+</div>
+<div class="carousel" aria-label="首页精选轮播">
+<div class="slides" th:if="${!#lists.isEmpty(home.carousels)}">
+<a class="slide" th:each="slide, stat : ${home.carousels}" th:classappend="${stat.first ? 'active' : ''}" th:href="@{${slide.redirectUrl}}">
+<img th:src="@{${slide.imageUrl}}" alt="01电商系统精选商品专题">
+</a>
+</div>
+<img th:if="${#lists.isEmpty(home.carousels)}" th:src="@{/images/01-banner.svg}" alt="01电商系统精选生活">
+<div class="carousel-controls" th:if="${#lists.size(home.carousels) > 1}">
+<button type="button" data-slide="-1" aria-label="上一张">←</button>
+<span id="slide-position">1</span>
+<button type="button" data-slide="1" aria-label="下一张">→</button>
+<button type="button" id="pause-carousel" aria-label="暂停轮播">暂停</button>
+</div>
+</div>
+</section>
+<section class="category-section">
+<h2>按分类发现</h2>
+<div class="category-tree">
+<article th:each="root : ${home.categories}">
+<a class="category-root" th:href="@{/search(categoryId=${root.categoryId})}" th:text="${root.categoryName}">
+</a>
+<div th:each="second : ${root.children}">
+<a class="category-second" th:href="@{/search(categoryId=${second.categoryId})}" th:text="${second.categoryName}">
+</a>
+<a class="category-leaf" th:each="leaf : ${second.children}" th:href="@{/search(categoryId=${leaf.categoryId})}" th:text="${leaf.categoryName}">
+</a>
+</div>
+</article>
+<p th:if="${#lists.isEmpty(home.categories)}">暂无可用分类。</p>
+</div>
+</section>
+<section class="shelf">
+<div class="section-heading">
+<div>
+<p class="eyebrow">POPULAR PICKS</p>
+<h2>人气热销</h2>
+</div>
+<a th:href="@{/search}">浏览全部 →</a>
+</div>
+<div class="product-grid" th:with="items=${home.hot}">
+<a class="product-card" th:each="p : ${items}" th:href="@{/products/{id}(id=${p.productId})}">
+<div class="product-picture">
+<img loading="lazy" th:src="@{${p.coverUrl}}" th:alt="${p.productName}">
+</div>
+<div class="product-copy">
+<p class="product-tag">01 精选</p>
+<h3 th:text="${p.productName}">
+</h3>
+<p class="summary" th:text="${p.summary}">
+</p>
+<div class="product-bottom">
+<strong th:text="'¥ ' + ${p.sellingPrice}">
+</strong>
+<span th:text="${p.stock > 0 ? '有货' : '暂时缺货'}">
+</span>
+</div>
+</div>
+</a>
+</div>
+<p class="empty" th:if="${#lists.isEmpty(home.hot)}">暂无配置商品，请稍后再来看看。</p>
+</section>
+<section class="shelf">
+<div class="section-heading">
+<div>
+<p class="eyebrow">NEW ARRIVALS</p>
+<h2>新品上线</h2>
+</div>
+<a th:href="@{/search}">浏览全部 →</a>
+</div>
+<div class="product-grid" th:with="items=${home.latest}">
+<a class="product-card" th:each="p : ${items}" th:href="@{/products/{id}(id=${p.productId})}">
+<div class="product-picture">
+<img loading="lazy" th:src="@{${p.coverUrl}}" th:alt="${p.productName}">
+</div>
+<div class="product-copy">
+<p class="product-tag">01 精选</p>
+<h3 th:text="${p.productName}">
+</h3>
+<p class="summary" th:text="${p.summary}">
+</p>
+<div class="product-bottom">
+<strong th:text="'¥ ' + ${p.sellingPrice}">
+</strong>
+<span th:text="${p.stock > 0 ? '有货' : '暂时缺货'}">
+</span>
+</div>
+</div>
+</a>
+</div>
+<p class="empty" th:if="${#lists.isEmpty(home.latest)}">暂无配置商品，请稍后再来看看。</p>
+</section>
+<section class="shelf">
+<div class="section-heading">
+<div>
+<p class="eyebrow">CURATED FOR YOU</p>
+<h2>为你推荐</h2>
+</div>
+<a th:href="@{/search}">浏览全部 →</a>
+</div>
+<div class="product-grid" th:with="items=${home.recommended}">
+<a class="product-card" th:each="p : ${items}" th:href="@{/products/{id}(id=${p.productId})}">
+<div class="product-picture">
+<img loading="lazy" th:src="@{${p.coverUrl}}" th:alt="${p.productName}">
+</div>
+<div class="product-copy">
+<p class="product-tag">01 精选</p>
+<h3 th:text="${p.productName}">
+</h3>
+<p class="summary" th:text="${p.summary}">
+</p>
+<div class="product-bottom">
+<strong th:text="'¥ ' + ${p.sellingPrice}">
+</strong>
+<span th:text="${p.stock > 0 ? '有货' : '暂时缺货'}">
+</span>
+</div>
+</div>
+</a>
+</div>
+<p class="empty" th:if="${#lists.isEmpty(home.recommended)}">暂无配置商品，请稍后再来看看。</p>
+</section>
+<aside class="demo-notice" th:if="${environment.databaseMode == 'H2 临时演示'}">H2 临时演示 · 账号与地址数据会在应用关闭后清空，日常开发请使用 MySQL。</aside>
+</main>
+<footer>
+<b>01电商系统</b>
+<span>课程独立实践项目 · 支付仅为项目内演示</span>
+<a th:href="@{/api/environment}">环境检查</a>
+</footer>
+<div id="global-message" role="status" aria-live="polite">
+</div>
+</body>
+</html>
