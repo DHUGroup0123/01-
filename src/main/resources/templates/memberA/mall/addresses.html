@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01电商系统 · 收货地址</title>
+<link rel="stylesheet" th:href="@{/css/01-shop.css}">
+<script defer th:src="@{/js/01-shop.js}">
+</script>
+</head>
+<body data-page="addresses">
+<header class="site-header">
+<a class="brand" th:href="@{/}">
+<span class="brand-icon">01</span>
+<span>01电商系统<small>好物 · 日常 · 新体验</small>
+</span>
+</a>
+<nav aria-label="主导航"><a th:href="@{/shop-cart}">购物车</a><a th:href="@{/orders}">我的订单</a><a th:href="@{/admin}">管理后台</a>
+<a th:href="@{/}">首页</a>
+<a th:href="@{/search}">全部商品</a>
+<a th:if="${currentUser != null}" th:href="@{/personal}">个人中心</a>
+<a th:if="${currentUser != null}" th:href="@{/personal/addresses}">收货地址</a>
+<a th:if="${currentUser == null}" th:href="@{/login}">登录</a>
+<a th:if="${currentUser == null}" class="nav-register" th:href="@{/register}">注册</a>
+<button th:if="${currentUser != null}" type="button" class="link-button" data-logout>退出登录</button>
+</nav>
+</header>
+<main>
+<div class="breadcrumb">
+<a th:href="@{/personal}">个人中心</a>
+<span>/</span>收货地址</div>
+<div class="account-layout">
+<aside class="account-nav">
+<p class="eyebrow">MY ACCOUNT</p>
+<h2>个人中心</h2>
+<a th:href="@{/personal}">个人资料</a>
+<a class="selected" th:href="@{/personal/addresses}">收货地址</a>
+<button type="button" class="link-button" data-logout>退出登录</button>
+</aside>
+<section class="account-content">
+<p class="eyebrow">DELIVERY ADDRESS</p>
+<h1>每一份期待，都有目的地。</h1>
+<p class="muted">保存一条默认收货信息，包含收货人、手机号及完整地址，最多100字。</p>
+<div id="address-list" class="address-list" aria-live="polite">
+</div>
+<section class="address-editor">
+<h2 id="editor-title">新增地址</h2>
+<form id="address-form" class="edit-form"><input type="hidden" name="addressId"><label>完整收货信息<textarea name="address" required maxlength="100" rows="4" placeholder="收货人、手机号、省市区、街道门牌"></textarea></label><p class="form-message" id="form-message" role="alert"></p><div class="actions"><button class="primary" type="submit">保存收货信息</button><button class="secondary" type="button" id="cancel-edit">取消编辑</button></div></form>
+</section>
+</section>
+</div>
+</main>
+<footer>
+<b>01电商系统</b>
+<span>课程独立实践项目 · 支付仅为项目内演示</span>
+<a th:href="@{/api/environment}">环境检查</a>
+</footer>
+<div id="global-message" role="status" aria-live="polite">
+</div>
+</body>
+</html>
